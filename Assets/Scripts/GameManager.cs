@@ -1,63 +1,112 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("UI")]
-    public Text statusText; // Один TextMeshPro на оба значения
-    public Text eggs;
     [Header("Game Settings")]
-    public int maxLives = 10;          // Максимум жизней
-    private int currentLives;          // Текущие жизни
-    private int currentScore;          // Текущие очки
+    public float startDelay = 3f;
+    public float winDelay = 2f;
 
-    public MenuTravel menuTravel;      // Для GameOver
-    public AudioSource dis;
+    [Header("Buttons")]
+    public Button[] buttons;
+
+    private int hiddenIndex;
+    private bool canClick;
+
+    public HealthController healthController;
+    public GameObject effectWin;
+    public AudioSource audioNice;
+    public AudioSource audioBad;
+    public ScoreManager scoreManager;
+    public SettingsSwitcher settingsSwitcher;
     private void OnEnable()
     {
-        currentLives = maxLives;
-        currentScore = 0;
-        eggs.text = 0.ToString();
-        UpdateStatusUI();
+        StartCoroutine(RestartGame());
     }
 
-    // Метод для уменьшения жизней
-    public void DecreaseLives(int amount = 1)
+    // --------------------
+    // RESTART GAME
+    // --------------------
+    IEnumerator RestartGame()
     {
-        currentLives -= amount;
-        if (currentLives < 0) currentLives = 0;
+        canClick = false;
 
-        UpdateStatusUI();
-        dis.Play();
-        if (currentLives <= 0)
+        // сброс визуала
+        for (int i = 0; i < buttons.Length; i++)
         {
-            GameOver();
+            buttons[i].interactable = false;
+            buttons[i].image.color = Color.white;
+
+            int index = i; // важно для замыкания
+            buttons[i].onClick.RemoveAllListeners();
+            buttons[i].onClick.AddListener(() => OnButtonClick(index));
+        }
+
+        // стартовый таймер
+        yield return new WaitForSeconds(startDelay);
+
+        hiddenIndex = Random.Range(0, buttons.Length);
+        canClick = true;
+
+        foreach (var b in buttons)
+            b.interactable = true;
+    }
+
+    // --------------------
+    // CLICK LOGIC
+    // --------------------
+    void OnButtonClick(int index)
+    {
+        if (!canClick) return;
+
+        if (index == hiddenIndex)
+        {
+            // УГАДАЛ
+            audioNice.Play();
+            canClick = false;
+            Instantiate(effectWin, buttons[index].transform.position, Quaternion.identity, buttons[index].transform);
+            healthController.AddLife();
+            scoreManager.AddScore();
+            StartCoroutine(WinRoutine());
+        }
+        else
+        {
+
+            if(settingsSwitcher.dummyOn)
+            {
+                Handheld.Vibrate();
+            }
+            audioBad.Play();
+            LoseLife();
+            buttons[index].image.color = Color.red;
+            buttons[index].interactable = false;
         }
     }
 
-    // Метод для добавления очков
-    public void AddScore(int amount)
+    // --------------------
+    // WIN
+    // --------------------
+    IEnumerator WinRoutine()
     {
-        currentScore += amount;
-        eggs.text=currentScore.ToString();
-        UpdateStatusUI();
+        WinSuccess();
+
+        yield return new WaitForSeconds(winDelay);
+
+        // полный рестарт
+        StartCoroutine(RestartGame());
     }
 
-    // Обновление UI (формат: Жизни/Очки)
-    private void UpdateStatusUI()
+    // --------------------
+    // STUBS (заглушки)
+    // --------------------
+    void LoseLife()
     {
-        if (statusText != null)
-        {
-            statusText.text = $"{currentLives}/{currentScore}";
-        }
+        healthController.TakeDamage();
     }
 
-    private void GameOver()
+    void WinSuccess()
     {
-        if (menuTravel != null)
-            menuTravel.makeMenu(5);
-
-     
+        Debug.Log("WIN (stub)");
     }
 }

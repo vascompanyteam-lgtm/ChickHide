@@ -10,19 +10,27 @@ public class SettingsSwitcher : MonoBehaviour
     [Header("UI Images")]
     public Image musicImage;
     public Image sfxImage;
+    public Image dummyImage; // третья кнопка
+
+    [Header("Sprites")]
+    public Sprite musicOnSprite;
+    public Sprite musicOffSprite;
+    public Sprite sfxOnSprite;
+    public Sprite sfxOffSprite;
+
+    public Sprite dummyOnSprite;
+    public Sprite dummyOffSprite;
 
     [Header("States")]
     public bool musicOn = true;
     public bool sfxOn = true;
-
-    [Header("Transparency Settings")]
-    [Range(0f, 1f)] public float offAlpha = 0.5f; // прозрачность, когда выключено
-    [Range(0f, 1f)] public float onAlpha = 1f;    // прозрачность, когда включено
+    public bool dummyOn = true;
 
     private void Start()
     {
         ApplyMusicState();
         ApplySfxState();
+        ApplyDummyState();
     }
 
     // --------------------
@@ -41,6 +49,13 @@ public class SettingsSwitcher : MonoBehaviour
         ApplySfxState();
     }
 
+    public void SwitchDummy()
+    {
+        dummyOn = !dummyOn;
+        ApplyDummyState();
+        // здесь можно будет добавить функционал позже
+    }
+
     // --------------------
     // APPLY STATES
     // --------------------
@@ -51,11 +66,7 @@ public class SettingsSwitcher : MonoBehaviour
             musicSource.mute = !musicOn;
 
         if (musicImage != null)
-        {
-            Color c = musicImage.color;
-            c.a = musicOn ? onAlpha : offAlpha;
-            musicImage.color = c;
-        }
+            musicImage.sprite = musicOn ? musicOnSprite : musicOffSprite;
     }
 
     void ApplySfxState()
@@ -67,10 +78,12 @@ public class SettingsSwitcher : MonoBehaviour
         }
 
         if (sfxImage != null)
-        {
-            Color c = sfxImage.color;
-            c.a = sfxOn ? onAlpha : offAlpha;
-            sfxImage.color = c;
-        }
+            sfxImage.sprite = sfxOn ? sfxOnSprite : sfxOffSprite;
+    }
+
+    void ApplyDummyState()
+    {
+        if (dummyImage != null)
+            dummyImage.sprite = dummyOn ? dummyOnSprite : dummyOffSprite;
     }
 }

@@ -7063,6 +7063,7 @@ MonoBehaviour:
   audioNice: {fileID: 1291234976}
   audioBad: {fileID: 341876039}
   scoreManager: {fileID: 2006407114}
+  settingsSwitcher: {fileID: 412325272}
 --- !u!114 &2006407113
 MonoBehaviour:
   m_ObjectHideFlags: 0
